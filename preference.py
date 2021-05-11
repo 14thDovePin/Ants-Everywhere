@@ -9,7 +9,7 @@ class GameSettings:  # ++++++++++++++++++++++++++++++++ GAME SETTINGS ++++++++++
     def __init__(self):
         self.screen_width = 1280
         self.screen_height = 720
-        self.game_window_caption = "Shapes Everywhere!"
+        self.game_window_caption = "Ants Everywhere!"
         self.target_fps = 60
 
         self.bg_color = (0, 51, 153)

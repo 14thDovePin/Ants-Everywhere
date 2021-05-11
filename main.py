@@ -12,6 +12,7 @@ Created template.
 
 import sys  # pygame_initial_template v1.3 -TherLaf
 import time
+from random import randint
 
 import pygame
 
@@ -44,11 +45,11 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
 
         # Colony
         self.colony = pygame.sprite.Group()
-        #  for _ in range(2):
-        self.colony.add(Ant(self))
-        ant = Ant(self)
-        ant.speed = -0.2
-        self.colony.add(ant)
+        for _ in range(90):  # 90 Ant samples that forms a circle.
+            ant = Ant(self)
+            ant.rotate(_*4)
+            ant.friction = False
+            self.colony.add(ant)
 
     # ================================ MAIN GAME LOOP ================================
     def run_game(self):

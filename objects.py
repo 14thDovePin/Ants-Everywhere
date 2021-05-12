@@ -3,6 +3,9 @@ Game objects.
 """
 
 from math import *
+from random import *
+import time
+
 import pygame
 from pygame.sprite import Sprite
 
@@ -33,13 +36,18 @@ class Ant(Sprite):
     def _load_attributes(self):
         """Main object attributes."""
         self.vel = Vec2(0, 0)
-        self.acceleration = Vec2(0.2, 0)
-        self.speed = 0.2  # Movement speed.
         self.friction = True
-        self.friction_speed = 0.02
         self.rotation = 0  # Facing left.
-        self.rotation_speed = 2  # Degrees.
-        self.max_speed = 2
+        self.max_speed = 0.5  # 2
+        self.manual_mode = False
+
+        self.acceleration = Vec2(0.2, 0)
+        self.friction_speed = 0.02
+        self.rotation_speed = 1  # 2 | Degrees.
+
+        self.turning_angle = 0  # Degrees.
+        self.time_snap = time.time()  # Snapshot of current time.
+        self.time_left = 0  # Seconds.
 
     def loop_update(self):
         """Attach to main game loop."""
@@ -61,11 +69,41 @@ class Ant(Sprite):
                 self.vel.x = 0
                 self.vel.y = 0
 
-        self.manual_ctrl()  # Manual control.
+        if self.manual_mode:
+            self.manual_ctrl()  # Manual control.
+        else:
+            self.auto_ctrl()
 
         # Updates velocity, internal position, and rectangle location.
         self.position += self.vel
         self.rect.center = self.position
+
+    def auto_ctrl(self):
+        """Automatic Ant movement."""
+        self.time_current = time.time()
+
+        # Random choice time.
+        if self.time_left < self.time_current:
+            self.time_left = self.time_current + uniform(0.5, 1)
+            # Random turning angle.
+            if self.turning_angle == 0:
+                self.turning_angle = randint(-120, 120)
+                self.rotation_speed = uniform(0.2, 2)
+
+        # Turning mechanics.
+        if self.turning_angle > self.rotation_speed:
+            self.rotate(-self.rotation_speed)
+            # print('left')  ###
+            self.turning_angle -= self.rotation_speed
+        elif self.turning_angle < -self.rotation_speed:
+            self.rotate(self.rotation_speed)
+            # print('right')  ###
+            self.turning_angle += self.rotation_speed
+        else:
+            self.turning_angle = 0
+
+        # Continious acceleration  ###
+        self.vel += self.acceleration
 
     def manual_ctrl(self):
         """Manual Ant control."""

@@ -45,10 +45,11 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
 
         # Colony
         self.colony = pygame.sprite.Group()
-        for _ in range(90):  # 90 Ant samples that forms a circle.
+        for _ in range(360):  # y=90 Ant samples that forms a circle.
             ant = Ant(self)
-            ant.rotate(_*4)
-            ant.friction = False
+            ant.rotate(_*1)  # x = 360 / y
+            # ant.friction = False
+            # ant.manual_mode = True
             self.colony.add(ant)
 
     # ================================ MAIN GAME LOOP ================================

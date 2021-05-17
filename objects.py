@@ -1,6 +1,4 @@
-"""
-Game objects.
-"""
+"""Game objects."""
 
 from math import *
 from random import *
@@ -19,10 +17,11 @@ class Ant(Sprite):
         super().__init__()
         # Load main_game screen rectangle.
         self.screen = main_game.screen
-        self.screen_rect = main_game.screen.get_rect()
+        self.screen_rect = main_game.screen_rect
 
         # Load object image and rectangles.
         self.image = pygame.image.load('assets/pointer_slim.png')
+        self.mask = pygame.mask.from_surface(self.image)
         self.fresh_image = self.image  # Used for transform.
         self.rect = self.image.get_rect()
 
@@ -37,9 +36,10 @@ class Ant(Sprite):
         """Main object attributes."""
         self.vel = Vec2(0, 0)
         self.friction = True
-        self.rotation = 0  # Facing left.
+        self.rotation = 0  # Facing right.
         self.max_speed = 0.5  # 2
         self.manual_mode = False
+        self.running = False
 
         self.acceleration = Vec2(0.2, 0)
         self.friction_speed = 0.02
@@ -56,19 +56,6 @@ class Ant(Sprite):
         if self.vel.length() > self.max_speed:
             self.vel.scale_to_length(self.max_speed)
 
-        # Friction.
-        keys = pygame.key.get_pressed()
-        if not any([
-            keys[pygame.K_UP],
-            keys[pygame.K_DOWN]
-            ]) and self.friction:
-
-            self.vel.x -= self.vel.x * self.friction_speed
-            self.vel.y -= self.vel.y * self.friction_speed
-            if (-0.1 < self.vel.x < 0.1) and (-0.1 < self.vel.y < 0.1):
-                self.vel.x = 0
-                self.vel.y = 0
-
         if self.manual_mode:
             self.manual_ctrl()  # Manual control.
         else:
@@ -77,6 +64,33 @@ class Ant(Sprite):
         # Updates velocity, internal position, and rectangle location.
         self.position += self.vel
         self.rect.center = self.position
+
+    def run_away(self):
+        """Runs away from specific x y point."""
+        if not self.running:
+            # Running switch
+            self.running = True
+
+            # Calculate point to point angle.
+            cursor_pos = pygame.mouse.get_pos()
+            dx = self.rect.x - cursor_pos[0]
+            dy = self.rect.y - cursor_pos[1]
+            rads = atan2(-dy,dx)
+            final = degrees(rads)
+            if final < 0:
+                final = final + 360
+
+            # print(f'Away Angle: {final}')  ###
+            # print(f'Object Rotation: {self.rotation}')  ###
+            # print(f'Calculated: {final - self.rotation}')  ###
+            # print()  ###
+
+            # Set final away angle
+            self.away_angle = final - self.rotation
+            if self.away_angle > 180:
+                self.away_angle -=360
+            self.turning_angle = self.away_angle
+            self.rotation_speed = 2
 
     def auto_ctrl(self):
         """Automatic Ant movement."""
@@ -92,17 +106,18 @@ class Ant(Sprite):
 
         # Turning mechanics.
         if self.turning_angle > self.rotation_speed:
-            self.rotate(-self.rotation_speed)
+            self.rotate(self.rotation_speed)
             # print('left')  ###
             self.turning_angle -= self.rotation_speed
         elif self.turning_angle < -self.rotation_speed:
-            self.rotate(self.rotation_speed)
+            self.rotate(-self.rotation_speed)
             # print('right')  ###
             self.turning_angle += self.rotation_speed
         else:
+            self.running = False
             self.turning_angle = 0
 
-        # Continious acceleration  ###
+        # Continious acceleration
         self.vel += self.acceleration
 
     def manual_ctrl(self):
@@ -111,9 +126,9 @@ class Ant(Sprite):
 
         # Acceleration
         if keys[pygame.K_LEFT]:
-            self.rotate(-self.rotation_speed)
-        if keys[pygame.K_RIGHT]:
             self.rotate(self.rotation_speed)
+        if keys[pygame.K_RIGHT]:
+            self.rotate(-self.rotation_speed)
         if keys[pygame.K_UP]:
             self.vel += self.acceleration
         if keys[pygame.K_DOWN]:
@@ -127,16 +142,49 @@ class Ant(Sprite):
                 self.vel.x = 0
                 self.vel.y = 0
 
+        # Friction.
+        if not any([
+            keys[pygame.K_UP],
+            keys[pygame.K_DOWN]
+            ]) and self.friction:
+
+            self.vel.x -= self.vel.x * self.friction_speed
+            self.vel.y -= self.vel.y * self.friction_speed
+            if (-0.1 < self.vel.x < 0.1) and (-0.1 < self.vel.y < 0.1):
+                self.vel.x = 0
+                self.vel.y = 0
+
     def rotate(self, rotation_speed):
         """Rotate the acceleration vector."""
-        self.acceleration.rotate_ip(rotation_speed)
+        self.acceleration.rotate_ip(-rotation_speed)
         self.rotation += rotation_speed
         if self.rotation > 360:
             self.rotation -= 360
         elif self.rotation < 0:
             self.rotation += 360
-        self.image = pygame.transform.rotozoom(self.fresh_image, -self.rotation, 1)
+        self.image = pygame.transform.rotozoom(self.fresh_image, self.rotation, 1)
         self.rect = self.image.get_rect(center=self.rect.center)
+
+    def blitme(self):
+        """Draws the object at it's predetermined location."""
+        self.screen.blit(self.image, self.rect)
+
+
+class CursorCircle(Sprite):
+    """The Circle of phobia for the cursor."""
+
+    def __init__(self, main_game):
+        super().__init__()
+        # Load main_game screen rectangle.
+        self.screen = main_game.screen
+        self.screen_rect = main_game.screen_rect
+
+        self.image = pygame.image.load('assets/circle.png')
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+
+    def loop_update(self):
+        self.rect.center = pygame.mouse.get_pos()
 
     def blitme(self):
         """Draws the object at it's predetermined location."""

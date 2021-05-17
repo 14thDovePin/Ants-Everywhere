@@ -1,6 +1,4 @@
-"""
-Game preference.
-"""
+"""Game preference."""
 
 class GameSettings:  # ++++++++++++++++++++++++++++++++ GAME SETTINGS ++++++++++++++++++++++++++++++++
     """Main class to modify presets of the game."""

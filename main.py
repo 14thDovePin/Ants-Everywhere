@@ -1,16 +1,4 @@
-"""
-Basic pygame game-layout-ready template. v1.3 11/07/2020  -TherLaf
-v1.3: 11/07/2020
-Added game stats and game status flag.
-v1.2:  11/03/2020
-Added fps limiter
-v1.1:  11/02/2020
-Refactored comments and code.
-v1.0:  10/28/2020
-Created template.
-"""
-
-import sys  # pygame_initial_template v1.3 -TherLaf
+import sys  # Created from pygame_initial_template v1.3 -TherLaf (My own template lol)
 import time
 from random import randint
 
@@ -51,6 +39,7 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
             # ant.friction = False
             # ant.manual_mode = True
             self.colony.add(ant)
+        self.ccirc = CursorCircle(self)
 
     # ================================ MAIN GAME LOOP ================================
     def run_game(self):
@@ -62,6 +51,12 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
                 self._border_pass()
                 for ant in self.colony:
                     ant.loop_update()
+                self.ccirc.loop_update()
+
+                # Collision evasion.
+                for i in pygame.sprite.spritecollide(self.ccirc, self.colony, False, pygame.sprite.collide_mask):
+                    i.run_away()
+
             self._update_screen()
             self._limit_fps()
 
@@ -117,6 +112,7 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
         self.screen.fill(self.settings.bg_color)  # Background color fill.
 
         # Insert game object/s' blit or surface update here ################
+        # self.ccirc.blitme()  ###
         for ant in self.colony:
             ant.blitme()
 
@@ -153,8 +149,6 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
                 ant.rect.top = self.settings.screen_height
                 ant.position[1] = ant.rect.centery
             # ant.position = pygame.math.Vector2(ant.rect.centerx, ant.rect.centery)
-
-
 
 
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- GAME OBJECTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

@@ -26,8 +26,8 @@ class Ant(Sprite):
         self.rect = self.image.get_rect()
 
         # Predetermine object's screen location.  ####
-        self.rect.centerx = self.screen_rect.centerx
-        self.rect.centery = self.screen_rect.centery
+        self.rect.centerx = randint(1, self.screen_rect.width)
+        self.rect.centery = randint(1, self.screen_rect.height)
         self.position = Vec2(self.rect.centerx, self.rect.centery)
 
         self._load_attributes()

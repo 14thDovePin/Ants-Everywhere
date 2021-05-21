@@ -5,6 +5,7 @@ from random import randint
 import pygame
 
 from objects import *
+from overlays import *
 from preference import *
 
 
@@ -18,6 +19,8 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
 
         self.settings = GameSettings()
         self.stats = Stats(self)
+
+        self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode(
             (self.settings.screen_width, self.settings.screen_height)
         )
@@ -26,18 +29,20 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
 
         self._assets()
 
-        self.cycle_start = time.time()  # Starts fps limiter cycle.
-
     def _assets(self):
         """Insert game objects here ################"""
 
-        # Colony
+        # Overlays
+        self.ingame_overlay = InGame(self)
+        self.ingame_overlay.fs_slider()
+
+        # Colony.
         self.colony = pygame.sprite.Group()
-        for _ in range(400):
+        for _ in range(360):
             ant = Ant(self)
-            ant.rotate(randint(0,360))
-            # ant.friction = False
+            ant.rotate(randint(1, 360))
             # ant.manual_mode = True
+            # ant.friction = False
             self.colony.add(ant)
         self.ccirc = CursorCircle(self)
 
@@ -47,18 +52,28 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
         while True:
             self._check_events()
             if self.stats.GAME_ACTIVE:
+                # Update caption, limit frames.
+                caption = self.settings.game_window_caption+" ["+str(round(self.clock.get_fps()))+"]"
+                pygame.display.set_caption(caption)
+                self.clock.tick(60)
+
+                # Overlay updates.
+                self.ingame_overlay.fss_loop_update()
+
                 # Insert Object rect update function or other functions here ################
                 self._border_pass()
                 for ant in self.colony:
                     ant.loop_update()
-                self.ccirc.loop_update()
+                resize = self.ingame_overlay.fs_slider_value
+                self.ccirc.loop_update(resize)
 
-                # Collision evasion.
-                for i in pygame.sprite.spritecollide(self.ccirc, self.colony, False, pygame.sprite.collide_mask):
-                    i.run_away()
+                # Ant collision evasion.
+                collisions = pygame.sprite.spritecollide(self.ccirc, self.colony, False, pygame.sprite.collide_mask)
+                for ant in collisions:
+                    ant.run_away()
 
             self._update_screen()
-            self._limit_fps()
+            # self._limit_fps()
 
     # ================================ KEYBOARD CONTROLS ================================
     def _check_events(self):
@@ -84,6 +99,18 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
         elif event.key == pygame.K_SPACE:
             print('pressed space bar')
         # Insert more key events here ################
+
+        # Pause keys.
+        elif event.key == pygame.K_ESCAPE:
+            if self.stats.GAME_ACTIVE:
+                self.stats.GAME_ACTIVE = False
+            else:
+                self.stats.GAME_ACTIVE = True
+        elif event.key == pygame.K_PAUSE:
+            if self.stats.GAME_ACTIVE:
+                self.stats.GAME_ACTIVE = False
+            else:
+                self.stats.GAME_ACTIVE = True
 
         elif event.key == pygame.K_q:
             sys.exit()
@@ -112,23 +139,14 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
         self.screen.fill(self.settings.bg_color)  # Background color fill.
 
         # Insert game object/s' blit or surface update here ################
-        # self.ccirc.blitme()  ###
         for ant in self.colony:
             ant.blitme()
+        self.ccirc.blitme()  ###
+
+        # In-game overlay.
+        self.ingame_overlay.fs_slider_blit()
 
         pygame.display.flip()  # Draws most recent surface.
-
-    def _limit_fps(self):
-        """Monitors and limits frames per second."""
-        curr_time = time.time()  # Current time.
-        diff = curr_time - self.cycle_start  # Takes time difference.
-        delay = max(1.0 / self.settings.target_fps - diff, 0)  # Calculates delay to limit fps.
-        time.sleep(delay)  # Delays program to reach target fps.
-        fps = 1.0 / (delay + diff)  # FPS is based on total time ("processing" diff time + "wasted" delay time)
-        self.cycle_start = curr_time  # Resets timing cycle.
-        pygame.display.set_caption(
-            f'{self.settings.game_window_caption} | [{int(fps)}]'  # Displays fps in game caption.
-        )
 
     # ================================ GAME FUNCTIONS ================================
     # Insert more function, method or helper methods here.
@@ -148,8 +166,16 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
             if ant.rect.bottom < 0:
                 ant.rect.top = self.settings.screen_height
                 ant.position[1] = ant.rect.centery
-            # ant.position = pygame.math.Vector2(ant.rect.centerx, ant.rect.centery)
 
+    # def _test_text_render(self):
+    #     """Simple text render on screen."""
+    #     text = 'FPS: ' + str(round(self.clock.get_fps()))
+    #     color = (153, 255, 204)
+    #     image = self.font.render(text, True, color)
+    #     rect = image.get_rect()
+    #     rect.centerx = self.screen_rect.centerx
+    #     rect.centery = self.screen_rect.centery
+    #     self.screen.blit(image, rect)
 
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- GAME OBJECTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # Insert more game class here

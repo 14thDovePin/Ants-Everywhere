@@ -163,6 +163,7 @@ class Ant(Sprite):
         elif self.rotation < 0:
             self.rotation += 360
         self.image = pygame.transform.rotozoom(self.fresh_image, self.rotation, 1)
+        # self.mask = pygame.mask.from_surface(self.image)  # PRECISION FIX but will cause lag. #####
         self.rect = self.image.get_rect(center=self.rect.center)
 
     def blitme(self):
@@ -178,14 +179,79 @@ class CursorCircle(Sprite):
         # Load main_game screen rectangle.
         self.screen = main_game.screen
         self.screen_rect = main_game.screen_rect
+        self.font = pygame.font.SysFont(None, 24, False, False)
 
+        # self.image = pygame.image.load('assets/circle_of_fear.png')
         self.image = pygame.image.load('assets/circle.png')
+        self.fresh_image = self.image  # Used for transform.
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
+        self.wxh = (self.rect.width, self.rect.height) ###
+        self.scale = 1
 
-    def loop_update(self):
+    def loop_update(self, new_scale):
+        """Object loop update."""
+        self.resize(new_scale)
         self.rect.center = pygame.mouse.get_pos()
+
+    def resize(self, new_scale):
+        """Resizes circle."""
+        if new_scale != self.scale:
+            self.scale = new_scale
+            new_scale = new_scale/100
+            set_scale = (
+                round(self.wxh[0]+self.wxh[0]*new_scale),
+                round(self.wxh[1]+self.wxh[1]*new_scale)
+                )
+            self.image = pygame.transform.scale(self.fresh_image, set_scale)
+            self.mask = pygame.mask.from_surface(self.image)
+            self.rect = self.image.get_rect()
+            print('Scale renewed!')
+            print(randint(1000,9999))
 
     def blitme(self):
         """Draws the object at it's predetermined location."""
         self.screen.blit(self.image, self.rect)
+
+
+class ObjectSample(Sprite):
+    """[DEBUG] A screen object to test mask."""
+
+    def __init__(self, main_game):
+        super().__init__()
+        # Load main_game screen rectangle.
+        self.screen = main_game.screen
+        self.screen_rect = main_game.screen_rect
+
+        self.image = pygame.image.load('assets/obj_sample.png')
+        self.image1 = pygame.image.load('assets/obj_sample1.png')
+        self.image_fresh = self.image
+        self.image1_fresh = self.image1
+
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.screen_rect.center
+
+        self.light = False
+        self.rotation_speed = 5
+
+    def loop_update(self):
+        """Objec consant loop."""
+        mouse_pos = pygame.mouse.get_pos()
+        pos_in_mask = mouse_pos[0] - self.rect.x, mouse_pos[1] - self.rect.y
+        collide = self.rect.collidepoint(*mouse_pos) and self.mask.get_at(pos_in_mask)
+
+        if collide:
+            self.light = True
+        else:
+            self.light = False
+
+        # self.image = pygame.transform.rotozoom(self.image_fresh, self.rotation_speed, 1)
+        # self.image1 = pygame.transform.rotozoom(self.image1_fresh, self.rotation_speed, 1)
+
+    def blitme(self):
+        """Draws the object at it's predetermined location."""
+        if not self.light:
+            self.screen.blit(self.image, self.rect)
+        else:
+            self.screen.blit(self.image1, self.rect)

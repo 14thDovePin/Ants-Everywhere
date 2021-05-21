@@ -20,7 +20,7 @@ class Ant(Sprite):
         self.screen_rect = main_game.screen_rect
 
         # Load object image and rectangles.
-        self.image = pygame.image.load('assets/pointer_slim.png')
+        self.image = pygame.image.load('assets/pointer_slim.png').convert_alpha()
         self.mask = pygame.mask.from_surface(self.image)
         self.fresh_image = self.image  # Used for transform.
         self.rect = self.image.get_rect()
@@ -181,18 +181,20 @@ class CursorCircle(Sprite):
         self.screen_rect = main_game.screen_rect
         self.font = pygame.font.SysFont(None, 24, False, False)
 
-        # self.image = pygame.image.load('assets/circle_of_fear.png')
-        self.image = pygame.image.load('assets/circle.png')
+        # self.image = pygame.image.load('assets/circle_of_fear.png').convert_alpha()
+        self.image = pygame.image.load('assets/circle.png').convert_alpha()
         self.fresh_image = self.image  # Used for transform.
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.wxh = (self.rect.width, self.rect.height) ###
         self.scale = 1
 
-    def loop_update(self, new_scale):
+    def loop_update(self, fss_button_state):
         """Object loop update."""
-        self.resize(new_scale)
-        self.rect.center = pygame.mouse.get_pos()
+        if not fss_button_state:
+            self.rect.center = pygame.mouse.get_pos()
+        else:
+            self.rect.center = self.screen_rect.center
 
     def resize(self, new_scale):
         """Resizes circle."""
@@ -206,8 +208,7 @@ class CursorCircle(Sprite):
             self.image = pygame.transform.scale(self.fresh_image, set_scale)
             self.mask = pygame.mask.from_surface(self.image)
             self.rect = self.image.get_rect()
-            print('Scale renewed!')
-            print(randint(1000,9999))
+            self.rect.center = self.screen_rect.center
 
     def blitme(self):
         """Draws the object at it's predetermined location."""
@@ -223,8 +224,8 @@ class ObjectSample(Sprite):
         self.screen = main_game.screen
         self.screen_rect = main_game.screen_rect
 
-        self.image = pygame.image.load('assets/obj_sample.png')
-        self.image1 = pygame.image.load('assets/obj_sample1.png')
+        self.image = pygame.image.load('assets/obj_sample.png').convert_alpha()
+        self.image1 = pygame.image.load('assets/obj_sample1.png').convert_alpha()
         self.image_fresh = self.image
         self.image1_fresh = self.image1
 

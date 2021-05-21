@@ -38,7 +38,7 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
 
         # Colony.
         self.colony = pygame.sprite.Group()
-        for _ in range(360):
+        for _ in range(700):
             ant = Ant(self)
             ant.rotate(randint(1, 360))
             # ant.manual_mode = True
@@ -55,7 +55,7 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
                 # Update caption, limit frames.
                 caption = self.settings.game_window_caption+" ["+str(round(self.clock.get_fps()))+"]"
                 pygame.display.set_caption(caption)
-                self.clock.tick(60)
+                self.clock.tick(self.settings.target_fps)
 
                 # Overlay updates.
                 self.ingame_overlay.fss_loop_update()
@@ -64,13 +64,19 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
                 self._border_pass()
                 for ant in self.colony:
                     ant.loop_update()
-                resize = self.ingame_overlay.fs_slider_value
-                self.ccirc.loop_update(resize)
+
+                fss = (  # Fear Strength Slider values.
+                    self.ingame_overlay.fs_button_press,
+                    self.ingame_overlay.fs_slider_value
+                    )
+                self.ccirc.loop_update(fss[0])
+                self.ccirc.resize(fss[1])
 
                 # Ant collision evasion.
-                collisions = pygame.sprite.spritecollide(self.ccirc, self.colony, False, pygame.sprite.collide_mask)
-                for ant in collisions:
-                    ant.run_away()
+                if not fss[0]:
+                    collisions = pygame.sprite.spritecollide(self.ccirc, self.colony, False, pygame.sprite.collide_mask)
+                    for ant in collisions:
+                        ant.run_away()
 
             self._update_screen()
             # self._limit_fps()

@@ -20,7 +20,9 @@ class InGame(Sprite):
 
     def fs_slider(self):
         """Fear strength slider."""
-        self.fs_slider_value = 0
+        # Attributes for external use.
+        self.fs_slider_value = 0  # Fear stength slider value.
+        self.fs_button_press = False
 
         # Text
         self.fs_text = "Fear Strength"
@@ -32,7 +34,7 @@ class InGame(Sprite):
         self.fs_text_rect.y += self.fs_text_rect.height/2
 
         # Slider
-        self.fs_slider_image = pygame.image.load('assets/slider.png')
+        self.fs_slider_image = pygame.image.load('assets/slider.png').convert_alpha()
         self.fs_slider_rect = self.fs_slider_image.get_rect()
         self.fs_slider_rect.centery = self.fs_text_rect.centery
         self.fs_slider_rect.left = self.fs_text_rect.right + self.fs_text_rect.height/2
@@ -72,8 +74,10 @@ class InGame(Sprite):
 
         if self.fsb_drag and mouse_press[0] and (self.fs_button_xlimit[0] < mouse_pos[0] < self.fs_button_xlimit[1]):
             self.fs_button_rect.centerx = mouse_pos[0]
+            self.fs_button_press = True
         else:
             self.fsb_drag = False
+            self.fs_button_press = False
 
         # Set slider value for external use.
         total = self.fs_button_xlimit[1]-self.fs_button_xlimit[0]

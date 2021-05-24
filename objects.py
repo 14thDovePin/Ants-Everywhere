@@ -20,22 +20,21 @@ class Ant(Sprite):
         self.screen_rect = main_game.screen_rect
 
         # Load object image and rectangles.
-        self.image = pygame.image.load('assets/pointer_slim.png').convert_alpha()
+        self.image = pygame.image.load('assets/pointer_center.png').convert_alpha()
+        self.image1 = pygame.image.load('assets/pointer_center1.png').convert_alpha()
+        self.image_pointer = pygame.image.load('assets/pointer_slim.png').convert_alpha()
+        self.mask = pygame.mask.from_surface(self.image)
 
-        self.image_center = pygame.image.load('assets/pointer_center.png').convert_alpha()
-        self.image_center1 = pygame.image.load('assets/pointer_center1.png').convert_alpha()
-        self.mask = pygame.mask.from_surface(self.image_center)
-
-        self.fresh_image = self.image  # Used for transform.
-        self.rect = self.image.get_rect()
-        self.rect1 = self.image_center.get_rect()
+        self.fresh_image_pointer = self.image_pointer  # Used for transform.
+        self.rect = self.image.get_rect()  # Rectangle for pointer center.
+        self.rectp = self.image_pointer.get_rect()  # Rectangle for pointer.
 
         # Predetermine object's screen location.  ####
         self.rect.centerx = randint(1, self.screen_rect.width)
         self.rect.centery = randint(1, self.screen_rect.height)
         self.position = Vec2(self.rect.centerx, self.rect.centery)
 
-        self.rect1.center = self.rect.center
+        self.rectp.center = self.rect.center
         # self.mask = pygame.mask.from_surface(self.image_center)
 
         self._load_attributes()
@@ -72,9 +71,9 @@ class Ant(Sprite):
 
         # Updates velocity, internal position, and rectangle location.
         self.position += self.vel
-        self.rect.center = self.position
+        self.rectp.center = self.position
 
-        self.rect1.center = self.position
+        self.rect.center = self.rectp.center
         self.touch = False
 
     def run_away(self):
@@ -85,8 +84,8 @@ class Ant(Sprite):
 
             # Calculate point to point angle.
             cursor_pos = pygame.mouse.get_pos()
-            dx = self.rect.x - cursor_pos[0]
-            dy = self.rect.y - cursor_pos[1]
+            dx = self.rectp.x - cursor_pos[0]
+            dy = self.rectp.y - cursor_pos[1]
             rads = atan2(-dy,dx)
             final = degrees(rads)
             if final < 0:
@@ -101,6 +100,8 @@ class Ant(Sprite):
             self.away_angle = final - self.rotation
             if self.away_angle > 180:
                 self.away_angle -=360
+            elif self.away_angle < -180:
+                self.away_angle +=360
             self.turning_angle = self.away_angle
             self.rotation_speed = 2
 
@@ -174,47 +175,19 @@ class Ant(Sprite):
             self.rotation -= 360
         elif self.rotation < 0:
             self.rotation += 360
-        self.image = pygame.transform.rotozoom(self.fresh_image, self.rotation, 1)
-        # self.mask = pygame.mask.from_surface(self.image)  # PRECISION FIX but will cause lag. #####
-        self.rect = self.image.get_rect(center=self.rect.center)
+        self.image_pointer = pygame.transform.rotozoom(self.fresh_image_pointer, self.rotation, 1)
+        self.rectp = self.image_pointer.get_rect(center=self.rectp.center)
 
     def blitme(self):
         """Draws the object at it's predetermined location."""
-        pygame.draw.rect(self.screen, (230, 230, 230), self.rect)
-        self.screen.blit(self.image, self.rect)
+        # pygame.draw.rect(self.screen, (230, 230, 230), self.rectp)  ###
+        self.screen.blit(self.image_pointer, self.rectp)
 
-        pygame.draw.rect(self.screen, (255, 102, 255), self.rect1)
+        # pygame.draw.rect(self.screen, (255, 102, 255), self.rect)  ###
         if not self.touch:
-            self.screen.blit(self.image_center, self.rect)
+            self.screen.blit(self.image, self.rect)
         else:
-            self.screen.blit(self.image_center1, self.rect)
-
-        # rect_sample = self.mask.get_rect(center=self.rect1.center)
-        # # print(rect_sample)
-        # pygame.draw.rect(self.screen, (230, 230, 230), rect_sample)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            self.screen.blit(self.image1, self.rect)
 
 
 class CursorCircle(Sprite):
@@ -235,9 +208,11 @@ class CursorCircle(Sprite):
         self.wxh = (self.rect.width, self.rect.height) ###
         self.scale = 1
 
-    def loop_update(self, fss_button_state):
+        self.show = False
+
+    def loop_update(self, center_circle):
         """Object loop update."""
-        if not fss_button_state:
+        if not center_circle:
             self.rect.center = pygame.mouse.get_pos()
         else:
             self.rect.center = self.screen_rect.center
@@ -258,47 +233,5 @@ class CursorCircle(Sprite):
 
     def blitme(self):
         """Draws the object at it's predetermined location."""
-        self.screen.blit(self.image, self.rect)
-
-
-class ObjectSample(Sprite):
-    """[DEBUG] A screen object to test mask."""
-
-    def __init__(self, main_game):
-        super().__init__()
-        # Load main_game screen rectangle.
-        self.screen = main_game.screen
-        self.screen_rect = main_game.screen_rect
-
-        self.image = pygame.image.load('assets/obj_sample.png').convert_alpha()
-        self.image1 = pygame.image.load('assets/obj_sample1.png').convert_alpha()
-        self.image_fresh = self.image
-        self.image1_fresh = self.image1
-
-        self.mask = pygame.mask.from_surface(self.image)
-        self.rect = self.image.get_rect()
-        self.rect.center = self.screen_rect.center
-
-        self.light = False
-        self.rotation_speed = 5
-
-    def loop_update(self):
-        """Objec consant loop."""
-        mouse_pos = pygame.mouse.get_pos()
-        pos_in_mask = mouse_pos[0] - self.rect.x, mouse_pos[1] - self.rect.y
-        collide = self.rect.collidepoint(*mouse_pos) and self.mask.get_at(pos_in_mask)
-
-        if collide:
-            self.light = True
-        else:
-            self.light = False
-
-        # self.image = pygame.transform.rotozoom(self.image_fresh, self.rotation_speed, 1)
-        # self.image1 = pygame.transform.rotozoom(self.image1_fresh, self.rotation_speed, 1)
-
-    def blitme(self):
-        """Draws the object at it's predetermined location."""
-        if not self.light:
+        if self.show:
             self.screen.blit(self.image, self.rect)
-        else:
-            self.screen.blit(self.image1, self.rect)

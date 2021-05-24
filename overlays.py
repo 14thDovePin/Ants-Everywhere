@@ -113,18 +113,50 @@ class InGame(Sprite):
         # Check box.
         self.sc_cb_image = pygame.image.load('assets/check_box.png').convert_alpha()
         self.sc_cb_image1 = pygame.image.load('assets/check_box1.png').convert_alpha()
+        self.sc_cb_mask = pygame.mask.from_surface(self.sc_cb_image)
         self.sc_cb_rect = self.sc_cb_image.get_rect()
         self.sc_cb_rect.left = self.sc_text_rect.right + self.sc_text_rect.height/2
         self.sc_cb_rect.y = self.sc_text_rect.y
 
-    def sc_cb_loop_update():
+        self.sc_cb_touching = False
+        self.sc_cb_pressed = False
+        self.sc_cb_lock = False
+
+    def sc_cb_loop_update(self):
         """Sc check box main loop update."""
+        mouse_press = pygame.mouse.get_pressed()
+
+        # https://stackoverflow.com/questions/52843879/detect-mouse-event-on-masked-image-pygame
+        mouse_pos = pygame.mouse.get_pos()
+        pos_in_mask = mouse_pos[0] - self.sc_cb_rect.x, mouse_pos[1] - self.sc_cb_rect.y
+        colliding = self.sc_cb_rect.collidepoint(*mouse_pos) and self.sc_cb_mask.get_at(pos_in_mask)
 
         # Checkbox logic.
-        pass
+        if colliding:
+            self.sc_cb_touching = True
+        else:
+            self.sc_cb_touching = False
+
+        if mouse_press[0] and colliding and not self.sc_cb_lock:
+            if not self.sc_cb_pressed:
+                self.sc_cb_pressed = True
+            else:
+                self.sc_cb_pressed = False
+            self.sc_cb_lock = True
+
+        if not mouse_press[0]:
+            self.sc_cb_lock = False
 
     def sc_cb_blit(self):
         """Blits show circle check box."""
         self.screen.blit(self.sc_text_image, self.sc_text_rect)
-        self.screen.blit(self.sc_cb_image, self.sc_cb_rect)
+
+        if not self.sc_cb_pressed:
+            if self.sc_cb_touching:
+                self.screen.blit(self.sc_cb_image1, self.sc_cb_rect)
+            else:
+                self.screen.blit(self.sc_cb_image, self.sc_cb_rect)
+        else:
+            self.screen.blit(self.sc_cb_image1, self.sc_cb_rect)
+
 

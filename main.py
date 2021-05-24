@@ -59,6 +59,7 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
 
                 # Overlay updates.
                 self.ingame_overlay.fss_loop_update()
+                self.ingame_overlay.sc_cb_loop_update()
 
                 # Insert Object rect update function or other functions here ################
                 self._border_pass()
@@ -69,11 +70,20 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
                     self.ingame_overlay.fs_button_press,
                     self.ingame_overlay.fs_slider_value
                     )
-                self.ccirc.loop_update(fss[0])
+                sc_cb = (  # Show Circle Check Box values.
+                    self.ingame_overlay.sc_cb_touching,
+                    self.ingame_overlay.sc_cb_pressed
+                    )
+                self.ccirc.loop_update(any([fss[0], sc_cb[0]]))
                 self.ccirc.resize(fss[1])
 
+                if any([fss[0], sc_cb[0]]) or sc_cb[1]:
+                    self.ccirc.show = True
+                else:
+                    self.ccirc.show = False
+
                 # Ant collision evasion.
-                if not fss[0]:
+                if not any([fss[0], sc_cb[0]]):
                     collisions = pygame.sprite.spritecollide(self.ccirc, self.colony, False, pygame.sprite.collide_mask)
                     for ant in collisions:
                         ant.run_away()
@@ -175,19 +185,6 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
             if ant.rect.bottom < 0:
                 ant.rect.top = self.settings.screen_height
                 ant.position[1] = ant.rect.centery
-
-    # def _test_text_render(self):
-    #     """Simple text render on screen."""
-    #     text = 'FPS: ' + str(round(self.clock.get_fps()))
-    #     color = (153, 255, 204)
-    #     image = self.font.render(text, True, color)
-    #     rect = image.get_rect()
-    #     rect.centerx = self.screen_rect.centerx
-    #     rect.centery = self.screen_rect.centery
-    #     self.screen.blit(image, rect)
-
-# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- GAME OBJECTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Insert more game class here
 
 
 if __name__ == '__main__':  # %-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%- MAIN PROGRAM %-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-

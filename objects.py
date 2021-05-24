@@ -21,14 +21,22 @@ class Ant(Sprite):
 
         # Load object image and rectangles.
         self.image = pygame.image.load('assets/pointer_slim.png').convert_alpha()
-        self.mask = pygame.mask.from_surface(self.image)
+
+        self.image_center = pygame.image.load('assets/pointer_center.png').convert_alpha()
+        self.image_center1 = pygame.image.load('assets/pointer_center1.png').convert_alpha()
+        self.mask = pygame.mask.from_surface(self.image_center)
+
         self.fresh_image = self.image  # Used for transform.
         self.rect = self.image.get_rect()
+        self.rect1 = self.image_center.get_rect()
 
         # Predetermine object's screen location.  ####
         self.rect.centerx = randint(1, self.screen_rect.width)
         self.rect.centery = randint(1, self.screen_rect.height)
         self.position = Vec2(self.rect.centerx, self.rect.centery)
+
+        self.rect1.center = self.rect.center
+        # self.mask = pygame.mask.from_surface(self.image_center)
 
         self._load_attributes()
 
@@ -40,6 +48,7 @@ class Ant(Sprite):
         self.max_speed = 0.5  # 2
         self.manual_mode = False
         self.running = False
+        self.touch = False
 
         self.acceleration = Vec2(0.2, 0)
         self.friction_speed = 0.02
@@ -64,6 +73,9 @@ class Ant(Sprite):
         # Updates velocity, internal position, and rectangle location.
         self.position += self.vel
         self.rect.center = self.position
+
+        self.rect1.center = self.position
+        self.touch = False
 
     def run_away(self):
         """Runs away from specific x y point."""
@@ -168,7 +180,41 @@ class Ant(Sprite):
 
     def blitme(self):
         """Draws the object at it's predetermined location."""
+        pygame.draw.rect(self.screen, (230, 230, 230), self.rect)
         self.screen.blit(self.image, self.rect)
+
+        pygame.draw.rect(self.screen, (255, 102, 255), self.rect1)
+        if not self.touch:
+            self.screen.blit(self.image_center, self.rect)
+        else:
+            self.screen.blit(self.image_center1, self.rect)
+
+        # rect_sample = self.mask.get_rect(center=self.rect1.center)
+        # # print(rect_sample)
+        # pygame.draw.rect(self.screen, (230, 230, 230), rect_sample)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class CursorCircle(Sprite):

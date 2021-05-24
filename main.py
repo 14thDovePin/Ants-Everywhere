@@ -77,6 +77,7 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
                     collisions = pygame.sprite.spritecollide(self.ccirc, self.colony, False, pygame.sprite.collide_mask)
                     for ant in collisions:
                         ant.run_away()
+                        ant.touch = True
 
             self._update_screen()
             # self._limit_fps()
@@ -150,7 +151,9 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
         self.ccirc.blitme()  ###
 
         # In-game overlay.
+        # pygame.draw.ellipse(self.screen, (204, 0, 204), self.ingame_overlay.overlay_rect)
         self.ingame_overlay.fs_slider_blit()
+        self.ingame_overlay.sc_cb_blit()
 
         pygame.display.flip()  # Draws most recent surface.
 

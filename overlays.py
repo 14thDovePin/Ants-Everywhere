@@ -17,6 +17,8 @@ class InGame(Sprite):
 
         # Initialize
         self.fs_slider()
+        self.sc_check_box()
+        # self.overlay_rect = self.fs_text_rect.union(self.fs_slider_rect)
 
     def fs_slider(self):
         """Fear strength slider."""
@@ -40,8 +42,8 @@ class InGame(Sprite):
         self.fs_slider_rect.left = self.fs_text_rect.right + self.fs_text_rect.height/2
 
         # Hex Button
-        self.fs_button_image = pygame.image.load('assets/slider_hex_button.png')
-        self.fs_button_image1 = pygame.image.load('assets/slider_hex_button1.png')
+        self.fs_button_image = pygame.image.load('assets/slider_hex_button.png').convert_alpha()
+        self.fs_button_image1 = pygame.image.load('assets/slider_hex_button1.png').convert_alpha()
         self.fs_button_mask = pygame.mask.from_surface(self.fs_button_image)
         self.fs_button_rect = self.fs_button_image.get_rect()
         self.fs_button_rect.centery = self.fs_slider_rect.centery
@@ -94,4 +96,35 @@ class InGame(Sprite):
         else:
             self.screen.blit(self.fs_button_image, self.fs_button_rect)
 
+    def sc_check_box(self):
+        """Show Circle check box."""
+
+        # Attributes for external use.
+        self.sc_cb = 0  # Show circle check box state.
+
+        # Text.
+        self.sc_text = "Show Circle"
+        self.sc_text_color = (0, 0, 0)
+        self.sc_text_image = self.font_24tnr.render(self.sc_text, True, self.sc_text_color)
+        self.sc_text_rect = self.sc_text_image.get_rect()
+        self.sc_text_rect.topleft = self.fs_text_rect.bottomleft
+        self.sc_text_rect.y += self.sc_text_rect.height/2
+
+        # Check box.
+        self.sc_cb_image = pygame.image.load('assets/check_box.png').convert_alpha()
+        self.sc_cb_image1 = pygame.image.load('assets/check_box1.png').convert_alpha()
+        self.sc_cb_rect = self.sc_cb_image.get_rect()
+        self.sc_cb_rect.left = self.sc_text_rect.right + self.sc_text_rect.height/2
+        self.sc_cb_rect.y = self.sc_text_rect.y
+
+    def sc_cb_loop_update():
+        """Sc check box main loop update."""
+
+        # Checkbox logic.
+        pass
+
+    def sc_cb_blit(self):
+        """Blits show circle check box."""
+        self.screen.blit(self.sc_text_image, self.sc_text_rect)
+        self.screen.blit(self.sc_cb_image, self.sc_cb_rect)
 

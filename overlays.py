@@ -1,4 +1,5 @@
 """Game overlays."""
+import sys
 
 import pygame
 from pygame.sprite import Sprite
@@ -18,7 +19,7 @@ class InGame(Sprite):
         # Initialize
         self.fs_slider()
         self.sc_check_box()
-        # self.overlay_rect = self.fs_text_rect.union(self.fs_slider_rect)
+        self.overlay_border()
 
     def fs_slider(self):
         """Fear strength slider."""
@@ -159,4 +160,205 @@ class InGame(Sprite):
         else:
             self.screen.blit(self.sc_cb_image1, self.sc_cb_rect)
 
+    def overlay_border(self):
+        """Current overlay border box."""
 
+        self.ob_image = pygame.image.load('assets/overlay_border_box.png').convert_alpha()
+        rects = [
+            self.fs_slider_rect,
+            self.sc_text_rect,
+            self.sc_cb_rect,
+        ]
+        self.ob_margine = 15
+        self.ob_rect_temp = self.fs_text_rect.unionall(rects)
+        wxh = (self.ob_rect_temp.width + self.ob_margine, self.ob_rect_temp.height + self.ob_margine)
+
+        self.ob_image = pygame.transform.scale(self.ob_image, wxh)
+        self.ob_rect = self.ob_image.get_rect(center=self.ob_rect_temp.center)
+
+    def ob_blit(self):
+        """Blits overlay border box."""
+        # pygame.draw.rect(self.screen, (204, 51, 153), self.ob_rect)
+        self.screen.blit(self.ob_image, self.ob_rect)
+
+
+class MenuOverlay:
+    """Menu overlays."""
+
+    def __init__(self, main_game):
+        """Initialize class asstets."""
+        super().__init__()
+        # Load main_game screen rectangle.
+        self.screen = main_game.screen
+        self.screen_rect = main_game.screen_rect
+        self.main_game = main_game
+
+        # Assets
+        self.first_run = True
+        self.button_margine = 15
+        self.button_lock = False
+
+        self._pause_mask()
+        self._play()
+        self._resume()
+        self._quit()
+
+    def _pause_mask(self):
+        """A mask to cover the screen when paused."""
+        self.pm_img = pygame.transform.scale(
+            pygame.image.load('assets/pause_mask.png'),
+            (self.screen_rect.width, self.screen_rect.height)
+            ).convert_alpha()
+        self.pm_rect = self.pm_img.get_rect()
+
+        # Set rectangle position.
+        self.pm_rect.center = self.screen_rect.center
+
+    def _play(self):
+        """Play button."""
+        self.play_img = pygame.image.load('assets/play_button.png').convert_alpha()
+        self.play_img1 = pygame.image.load('assets/play_button1.png').convert_alpha()
+        self.play_mask = pygame.mask.from_surface(self.play_img)
+        self.play_rect = self.play_img.get_rect()
+        self.play_touching = False
+        self.play_pressed = False
+
+        # Set rectangle position.
+        self.play_rect.centerx = self.screen_rect.centerx
+        self.play_rect.bottom = self.screen_rect.centery - self.button_margine
+
+    def _resume(self):
+        """Resume button."""
+        self.resume_img = pygame.image.load('assets/resume_button.png').convert_alpha()
+        self.resume_img1 = pygame.image.load('assets/resume_button1.png').convert_alpha()
+        self.resume_mask = pygame.mask.from_surface(self.resume_img)
+        self.resume_rect = self.resume_img.get_rect()
+        self.resume_touching = False
+        self.resume_pressed = False
+
+        # Set rectangle position.
+        self.resume_rect.centerx = self.screen_rect.centerx
+        self.resume_rect.bottom = self.screen_rect.centery - self.button_margine
+
+    def _quit(self):
+        """Quit button."""
+        self.quit_img = pygame.image.load('assets/quit_button.png').convert_alpha()
+        self.quit_img1 = pygame.image.load('assets/quit_button1.png').convert_alpha()
+        self.quit_mask = pygame.mask.from_surface(self.quit_img)
+        self.quit_rect = self.quit_img.get_rect()
+        self.quit_touching = False
+        self.quit_pressed = False
+
+        # Set rectangle position.
+        self.quit_rect.centerx = self.screen_rect.centerx
+        self.quit_rect.top = self.screen_rect.centery + self.button_margine
+
+    def buttons_loop_update(self):
+        """Buttons loop update."""
+        # Reset mouse button lock by condition.
+        mouse_press = pygame.mouse.get_pressed()
+        if not mouse_press[0]:
+            self.button_lock = False
+
+        # Reset buttons
+        self.play_pressed = False
+        self.resume_pressed = False
+        self.quit_pressed = False
+
+        # Logic event.
+        self.play_touching = self.buttons_logic_update(
+            self.play_rect,
+            self.play_mask,
+            self.play_touching
+            )
+        self.resume_touching = self.buttons_logic_update(
+            self.resume_rect,
+            self.resume_mask,
+            self.resume_touching
+            )
+        self.quit_touching = self.buttons_logic_update(
+            self.quit_rect,
+            self.quit_mask,
+            self.quit_touching
+            )
+
+        # Press event.
+        if self.first_run:
+            self.play_pressed = self.buttons_press_update(
+                self.play_rect,
+                self.play_mask,
+                self.play_pressed
+                )
+        else:
+            self.resume_pressed = self.buttons_press_update(
+                self.resume_rect,
+                self.resume_mask,
+                self.resume_pressed
+                )
+        self.quit_pressed = self.buttons_press_update(
+            self.quit_rect,
+            self.quit_mask,
+            self.quit_pressed
+            )
+
+        # Actions for press event.
+        if self.play_pressed:
+            print('Play pressed!')
+            self.main_game.stats.GAME_ACTIVE = True
+            self.first_run = False
+        if self.resume_pressed:
+            print('Resume pressed!')
+            self.main_game.stats.GAME_ACTIVE = True
+        if self.quit_pressed:
+            print('Quit Pressed!')
+            sys.exit()
+
+
+    def buttons_logic_update(self, obj_rect, obj_mask, obj_touch):
+        """Buttons logic update."""
+        mouse_press = pygame.mouse.get_pressed()
+
+        # https://stackoverflow.com/questions/52843879/detect-mouse-event-on-masked-image-pygame
+        mouse_pos = pygame.mouse.get_pos()
+        pos_in_mask = mouse_pos[0] - obj_rect.x, mouse_pos[1] - obj_rect.y
+        colliding = obj_rect.collidepoint(*mouse_pos) and obj_mask.get_at(pos_in_mask)
+
+        # Touch logic.
+        if colliding:
+            return True
+        else:
+            return False
+
+    def buttons_press_update(self, obj_rect, obj_mask, obj_pressed):
+        """Buttons logic update."""
+        mouse_press = pygame.mouse.get_pressed()
+
+        # https://stackoverflow.com/questions/52843879/detect-mouse-event-on-masked-image-pygame
+        mouse_pos = pygame.mouse.get_pos()
+        pos_in_mask = mouse_pos[0] - obj_rect.x, mouse_pos[1] - obj_rect.y
+        colliding = obj_rect.collidepoint(*mouse_pos) and obj_mask.get_at(pos_in_mask)
+
+        # Press logic.
+        if colliding and mouse_press[0] and not self.button_lock:
+            self.button_lock = True
+            return True
+
+    def blit_buttons(self):
+        """Blits buttons."""
+        self.screen.blit(self.pm_img, self.pm_rect)
+        if self.first_run:
+            if not self.play_touching:
+                self.screen.blit(self.play_img, self.play_rect)
+            else:
+                self.screen.blit(self.play_img1, self.play_rect)
+
+        else:
+            if not self.resume_touching:
+                self.screen.blit(self.resume_img, self.resume_rect)
+            else:
+                self.screen.blit(self.resume_img1, self.resume_rect)
+
+        if not self.quit_touching:
+            self.screen.blit(self.quit_img, self.quit_rect)
+        else:
+            self.screen.blit(self.quit_img1, self.quit_rect)

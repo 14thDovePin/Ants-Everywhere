@@ -1,9 +1,10 @@
+
 ## Ants Everywhere!
 
 This is my very first full project in my repository! This project is heavily inspired from [**_Sebastian Lague's_**](https://www.youtube.com/channel/UCmtyQOKKmrMVaKuRXz02jbQ) [*Ant and Slime simulation*](https://www.youtube.com/watch?v=X-iSQQgOd1A). This simulation is made to mimic the movement of ants. The game is small and simple. Ants move around the window and where ever the mouse points at, the ants will try to evade it as they travel around.
 
 ### Keyboard Controls
-###### Ant Manual Mode.
+###### Ant Manual Mode.  (NOT IN-GAME)
 * Uparrow - *Accelerate forwards.*
 * Downarrow - *Accelerate backwards.*
 * Leftarrow - *Rotate left.*

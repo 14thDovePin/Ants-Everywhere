@@ -34,11 +34,11 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
 
         # Overlays
         self.ingame_overlay = InGame(self)
-        self.ingame_overlay.fs_slider()
+        self.menu_overlay = MenuOverlay(self)
 
         # Colony.
         self.colony = pygame.sprite.Group()
-        for _ in range(700):
+        for _ in range(800):  # Max 800
             ant = Ant(self)
             ant.rotate(randint(1, 360))
             # ant.manual_mode = True
@@ -88,6 +88,8 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
                     for ant in collisions:
                         ant.run_away()
                         ant.touch = True
+            else:
+                self.menu_overlay.buttons_loop_update()
 
             self._update_screen()
             # self._limit_fps()
@@ -119,15 +121,17 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
 
         # Pause keys.
         elif event.key == pygame.K_ESCAPE:
-            if self.stats.GAME_ACTIVE:
-                self.stats.GAME_ACTIVE = False
-            else:
-                self.stats.GAME_ACTIVE = True
+            if not self.menu_overlay.first_run:
+                if self.stats.GAME_ACTIVE:
+                    self.stats.GAME_ACTIVE = False
+                else:
+                    self.stats.GAME_ACTIVE = True
         elif event.key == pygame.K_PAUSE:
-            if self.stats.GAME_ACTIVE:
-                self.stats.GAME_ACTIVE = False
-            else:
-                self.stats.GAME_ACTIVE = True
+            if not self.menu_overlay.first_run:
+                if self.stats.GAME_ACTIVE:
+                    self.stats.GAME_ACTIVE = False
+                else:
+                    self.stats.GAME_ACTIVE = True
 
         elif event.key == pygame.K_q:
             sys.exit()
@@ -162,8 +166,13 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
 
         # In-game overlay.
         # pygame.draw.ellipse(self.screen, (204, 0, 204), self.ingame_overlay.overlay_rect)
+        self.ingame_overlay.ob_blit()
         self.ingame_overlay.fs_slider_blit()
         self.ingame_overlay.sc_cb_blit()
+
+        # Menu overlay.
+        if not self.stats.GAME_ACTIVE:
+            self.menu_overlay.blit_buttons()
 
         pygame.display.flip()  # Draws most recent surface.
 
@@ -173,18 +182,18 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
     def _border_pass(self):
         """Moves objects passing through one edge of the window to the opposite."""
         for ant in self.colony:
-            if ant.rect.left > self.settings.screen_width:
-                ant.rect.right = 0
-                ant.position[0] = ant.rect.centerx
-            if ant.rect.right < 0:
-                ant.rect.left = self.settings.screen_width
-                ant.position[0] = ant.rect.centerx
-            if ant.rect.top > self.settings.screen_height:
-                ant.rect.bottom = 0
-                ant.position[1] = ant.rect.centery
-            if ant.rect.bottom < 0:
-                ant.rect.top = self.settings.screen_height
-                ant.position[1] = ant.rect.centery
+            if ant.rectp.left > self.settings.screen_width:
+                ant.rectp.right = 0
+                ant.position[0] = ant.rectp.centerx
+            if ant.rectp.right < 0:
+                ant.rectp.left = self.settings.screen_width
+                ant.position[0] = ant.rectp.centerx
+            if ant.rectp.top > self.settings.screen_height:
+                ant.rectp.bottom = 0
+                ant.position[1] = ant.rectp.centery
+            if ant.rectp.bottom < 0:
+                ant.rectp.top = self.settings.screen_height
+                ant.position[1] = ant.rectp.centery
 
 
 if __name__ == '__main__':  # %-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%- MAIN PROGRAM %-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-

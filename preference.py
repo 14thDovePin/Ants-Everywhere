@@ -19,7 +19,7 @@ class Stats:  # ++++++++++++++++++++++++++++++++ GAME STATISTICS +++++++++++++++
     def __init__(self, ai_game):
         self.settings = ai_game.settings
         self.reset()
-        self.GAME_ACTIVE = True  # Game status flag. 
+        self.GAME_ACTIVE = False  # Game status flag. 
 
     def reset(self):
         """Initialize game stats for game. Can also be called to reset game stats to presets in the settings."""

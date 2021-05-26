@@ -13,6 +13,7 @@ class InGame(Sprite):
         # Load main_game screen rectangle.
         self.screen = main_game.screen
         self.screen_rect = main_game.screen_rect
+        self.main_game = main_game
 
         self.font_24tnr = pygame.font.SysFont("timesnewroman", 24, False, False)
 
@@ -20,6 +21,7 @@ class InGame(Sprite):
         self.fs_slider()
         self.sc_check_box()
         self.overlay_border()
+        self.pause()
 
     def fs_slider(self):
         """Fear strength slider."""
@@ -181,6 +183,50 @@ class InGame(Sprite):
         # pygame.draw.rect(self.screen, (204, 51, 153), self.ob_rect)
         self.screen.blit(self.ob_image, self.ob_rect)
 
+    def pause(self):
+        """In game pause button."""
+        self.pause_img = pygame.image.load('assets/pause_button.png').convert_alpha()
+        self.pause_img1 = pygame.image.load('assets/pause_button1.png').convert_alpha()
+        self.pause_mask = pygame.mask.from_surface(self.pause_img)
+        self.pause_rect = self.pause_img.get_rect()
+        self.pause_lock = False
+        self.pause_touching = False
+        self.pause_pressed = False
+
+        # Set rectangle position.
+        self.pause_rect.right = self.screen_rect.right - 15
+        self.pause_rect.bottom = self.screen_rect.bottom - 15
+
+    def pause_loop_update(self):
+        """Pause loop update"""
+        mouse_press = pygame.mouse.get_pressed()
+        self.pause_pressed = False  # Reset
+        if not mouse_press[0]:
+            self.pause_lock = False
+
+        # https://stackoverflow.com/questions/52843879/detect-mouse-event-on-masked-image-pygame
+        mouse_pos = pygame.mouse.get_pos()
+        pos_in_mask = mouse_pos[0] - self.pause_rect.x, mouse_pos[1] - self.pause_rect.y
+        colliding = self.pause_rect.collidepoint(*mouse_pos) and self.pause_mask.get_at(pos_in_mask)
+
+        # Touch logic.
+        if colliding:
+            self.pause_touching = True
+        else:
+            self.pause_touching = False
+
+        # Press logic.
+        if colliding and mouse_press[0] and not self.pause_lock:
+            self.main_game.stats.GAME_ACTIVE = False
+            self.pause_lock = True
+
+    def pause_blit(self):
+        """Blits pause button."""
+        if not self.pause_touching:
+            self.screen.blit(self.pause_img, self.pause_rect)
+        else:
+            self.screen.blit(self.pause_img1, self.pause_rect)
+
 
 class MenuOverlay:
     """Menu overlays."""
@@ -197,6 +243,11 @@ class MenuOverlay:
         self.first_run = True
         self.button_margine = 15
         self.button_lock = False
+
+        self.title_img = pygame.image.load('assets/ants_everywhere_title.png').convert_alpha()
+        self.title_rect = self.title_img.get_rect()
+        self.title_rect.centerx = self.screen_rect.centerx
+        self.title_rect.centery = int(self.screen_rect.height/3)
 
         self._pause_mask()
         self._play()
@@ -303,14 +354,14 @@ class MenuOverlay:
 
         # Actions for press event.
         if self.play_pressed:
-            print('Play pressed!')
+            # print('Play pressed!')
             self.main_game.stats.GAME_ACTIVE = True
             self.first_run = False
         if self.resume_pressed:
-            print('Resume pressed!')
+            # print('Resume pressed!')
             self.main_game.stats.GAME_ACTIVE = True
         if self.quit_pressed:
-            print('Quit Pressed!')
+            # print('Quit Pressed!')
             sys.exit()
 
 
@@ -346,6 +397,7 @@ class MenuOverlay:
     def blit_buttons(self):
         """Blits buttons."""
         self.screen.blit(self.pm_img, self.pm_rect)
+        self.screen.blit(self.title_img, self.title_rect)
         if self.first_run:
             if not self.play_touching:
                 self.screen.blit(self.play_img, self.play_rect)

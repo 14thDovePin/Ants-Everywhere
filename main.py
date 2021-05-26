@@ -60,6 +60,7 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
                 # Overlay updates.
                 self.ingame_overlay.fss_loop_update()
                 self.ingame_overlay.sc_cb_loop_update()
+                self.ingame_overlay.pause_loop_update()
 
                 # Insert Object rect update function or other functions here ################
                 self._border_pass()
@@ -169,6 +170,7 @@ class MainGame:  # ++++++++++++++++++++++++++++++++ MAIN GAME ++++++++++++++++++
         self.ingame_overlay.ob_blit()
         self.ingame_overlay.fs_slider_blit()
         self.ingame_overlay.sc_cb_blit()
+        self.ingame_overlay.pause_blit()
 
         # Menu overlay.
         if not self.stats.GAME_ACTIVE:

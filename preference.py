@@ -10,7 +10,6 @@ class GameSettings:  # ++++++++++++++++++++++++++++++++ GAME SETTINGS ++++++++++
         self.game_window_caption = "Ants Everywhere!"
         self.target_fps = 60
 
-        self.bg_color = (0, 51, 153)
         self.bg_color = (77, 77, 77)
 
 
